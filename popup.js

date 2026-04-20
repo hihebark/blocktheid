@@ -1,0 +1,74 @@
+// Load and display blocked domains
+async function loadBlockedDomains() {
+  chrome.runtime.sendMessage({ action: 'getBlockedDomains' }, (response) => {
+    const domains = response.domains || [];
+    const container = document.getElementById('domainList');
+    const countSpan = document.getElementById('count');
+    
+    countSpan.textContent = `(${domains.length})`;
+    
+    if (domains.length === 0) {
+      container.innerHTML = '<div class="empty-state">No domains blocked yet</div>';
+      return;
+    }
+    
+    container.innerHTML = domains.map(item => `
+      <div class="domain-item">
+        <div>
+          <strong>${item.domain}</strong>
+          <span class="platform-badge ${item.platform}">${item.platform}</span>
+        </div>
+        <button class="unblock-btn" data-domain="${item.domain}">Unblock</button>
+      </div>
+    `).join('');
+    
+    // Add unblock handlers
+    document.querySelectorAll('.unblock-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const domain = btn.dataset.domain;
+        chrome.runtime.sendMessage({ 
+          action: 'unblockDomain', 
+          domain: domain 
+        }, () => {
+          loadBlockedDomains(); // Refresh list
+        });
+      });
+    });
+  });
+}
+
+// Load settings
+async function loadSettings() {
+  chrome.runtime.sendMessage({ action: 'getSettings' }, (response) => {
+    document.getElementById('autoBlockToggle').checked = response.autoBlock;
+    
+    // Set platform toggles
+    const disabledPlatforms = response.disabledPlatforms || [];
+    document.querySelectorAll('.platform-toggle').forEach(cb => {
+      const platform = cb.dataset.platform;
+      cb.checked = !disabledPlatforms.includes(platform);
+    });
+  });
+}
+
+// Event listeners
+document.getElementById('autoBlockToggle').addEventListener('change', (e) => {
+  chrome.runtime.sendMessage({ 
+    action: 'toggleAutoBlock', 
+    enabled: e.target.checked 
+  });
+});
+
+document.querySelectorAll('.platform-toggle').forEach(cb => {
+  cb.addEventListener('change', (e) => {
+    chrome.runtime.sendMessage({ 
+      action: 'togglePlatform', 
+      platform: cb.dataset.platform,
+      enabled: cb.checked
+    });
+  });
+});
+
+// Initial load
+loadSettings();
+loadBlockedDomains();

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Blocktheid</h2>
+    
+    <div class="settings">
+      <label class="switch-label">
+        <input type="checkbox" id="autoBlockToggle" checked>
+        <span>Auto-block</span>
+      </label>
+    </div>
+    
+    <div class="platforms">
+      <h3>Blocking</h3>
+      <div class="platform-list">
+        <label><input type="checkbox" class="platform-toggle" data-platform="vercel" checked> Vercel</label>
+      </div>
+    </div>
+    
+    <div class="blocked-list">
+      <h3>Blocked <span id="count">(0)</span></h3>
+      <div id="domainList" class="domain-list">
+        <div class="empty-state">No domains blocked</div>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
