@@ -1,15 +1,8 @@
 # Blocktheid
 
-```
-        ▼  Blocktheid  ▼
-        
-▄▄▄  ▄▄                                           
-   ██▀▀█▄ ██                    █▄ █▄                █▄
-   ██ ▄█▀ ██             ▄▄    ▄██▄██          ▀▀    ██
-   ██▀▀█▄ ██ ▄███▄ ▄███▀ ██ ▄█▀ ██ ████▄ ▄█▀█▄ ██ ▄████
- ▄ ██  ▄█ ██ ██ ██ ██    ████   ██ ██ ██ ██▄█▀ ██ ██ ██
- ▀██████▀▄██▄▀███▀▄▀███▄▄██ ▀█▄▄██▄██ ██▄▀█▄▄▄▄██▄█▀███ 
-```
+<p align="center">
+  <img src="logo.svg" alt="Blocktheid" width="128">
+</p>
 
 Block Vercel-hosted websites to boycott Israel's war on Gaza.
 
@@ -17,7 +10,7 @@ Block Vercel-hosted websites to boycott Israel's war on Gaza.
 
 1. Open Chrome → `chrome://extensions`
 2. Enable **Developer mode**
-3. Click **Load unpacked** → select `blockade` folder
+3. Click **Load unpacked** → select `blocktheid` folder
 
 ## Install (Firefox)
 
