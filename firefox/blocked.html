@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blocked</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0d0d14 0%, #1a1a2e 100%);
+      color: #eee;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      text-align: center;
+      max-width: 420px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,107,107,0.2);
+      border-radius: 16px;
+      padding: 40px 32px;
+    }
+    .icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 36px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ff6b6b;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 24px;
+    }
+    .details {
+      background: rgba(0,0,0,0.3);
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .details p {
+      margin: 10px 0;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .details span {
+      color: #ff6b6b;
+      font-weight: 500;
+    }
+    .reason {
+      background: linear-gradient(135deg, rgba(255,107,107,0.1) 0%, rgba(255,107,107,0.05) 100%);
+      border: 1px solid rgba(255,107,107,0.15);
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #ccc;
+    }
+    .reason h3 {
+      color: #ff6b6b;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn {
+      padding: 14px 24px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+    .btn-bypass {
+      background: transparent;
+      color: #52b788;
+      border: 1px solid #52b788;
+    }
+    .btn-bypass:hover {
+      background: #52b788;
+      color: #0d0d14;
+    }
+    .btn-stay {
+      background: rgba(255,255,255,0.05);
+      color: #666;
+    }
+    .btn-stay:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .footer {
+      margin-top: 24px;
+      font-size: 11px;
+      color: #555;
+    }
+    .footer a {
+      color: #ff6b6b;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🛑</div>
+    <h1>ACCESS BLOCKED</h1>
+    <p class="subtitle">This website has been blocked</p>
+    
+    <div class="details">
+      <p>Domain <span id="domain"></span></p>
+      <p>Platform <span id="platform"></span></p>
+    </div>
+    
+    <div class="reason">
+      <h3>Why it's blocked</h3>
+      <p id="reason-text"></p>
+    </div>
+    
+    <div class="buttons">
+      <button class="btn btn-bypass" id="bypassBtn">Bypass once</button>
+      <button class="btn btn-stay" id="stayBtn">I will resist</button>
+    </div>
+    
+    <p class="footer">Blocked by <a href="#">Blocktheid</a></p>
+  </div>
+  <script src="blocked.js"></script>
+</body>
+</html>

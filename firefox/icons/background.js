@@ -8,12 +8,11 @@ const PLATFORM_PATTERNS = {
 };
 
 let blockedDomains = [];
-let stats = { totalBlocked: 0, bypassed: 0, last30Days: [] };
 const recentlyBlocked = new Set();
 const BLOCK_COOLDOWN = 5000;
 let temporarilyBypassed = null;
 
-function detectPlatform(url) {
+async function detectPlatform(url) {
   try {
     const hostname = new URL(url).hostname.toLowerCase();
     
@@ -30,31 +29,30 @@ function detectPlatform(url) {
   return null;
 }
 
-function blockDomain(domain, platform) {
+async function blockDomain(domain, platform) {
   if (blockedDomains.some(d => d.domain === domain)) {
     return false;
   }
   
   blockedDomains.push({ domain, platform, timestamp: Date.now() });
-  chrome.storage.local.set({ blockedDomains });
+  await chrome.storage.local.set({ blockedDomains });
   
   return true;
 }
 
-function unblockDomain(domain) {
+async function unblockDomain(domain) {
   blockedDomains = blockedDomains.filter(d => d.domain !== domain);
-  chrome.storage.local.set({ blockedDomains: blockedDomains });
+  await chrome.storage.local.set({ blockedDomains: blockedDomains });
   
   return true;
 }
 
-function checkAndBlockCurrentTab(tabId, url) {
+async function checkAndBlockCurrentTab(tabId, url) {
   if (!url || url.startsWith('chrome://') || url.startsWith('about:') || url.startsWith('file://')) {
     return;
   }
 
   const hostname = new URL(url).hostname;
-  
   if (recentlyBlocked.has(hostname)) {
     return;
   }
@@ -64,76 +62,48 @@ function checkAndBlockCurrentTab(tabId, url) {
     return;
   }
 
-  const platform = detectPlatform(url);
+  const platform = await detectPlatform(url);
   
   if (platform) {
-    chrome.storage.local.get('disabledPlatforms', (result) => {
-      const disabledPlatforms = result.disabledPlatforms || [];
-      
-      if (disabledPlatforms.includes(platform)) {
-        return;
-      }
+    const { disabledPlatforms = [] } = await chrome.storage.local.get('disabledPlatforms');
+    
+    if (disabledPlatforms.includes(platform)) {
+      return;
+    }
 
-      recentlyBlocked.add(hostname);
-      setTimeout(() => recentlyBlocked.delete(hostname), BLOCK_COOLDOWN);
-      
-      blockDomain(hostname, platform);
+    recentlyBlocked.add(hostname);
+    setTimeout(() => recentlyBlocked.delete(hostname), BLOCK_COOLDOWN);
+    
+    await blockDomain(hostname, platform);
 
-      stats.totalBlocked++;
-      stats.last30Days.push({ date: Date.now(), domain: hostname, platform });
-      const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-      stats.last30Days = stats.last30Days.filter(s => s.date > thirtyDaysAgo);
-      chrome.storage.local.set({ stats });
-
-      const extUrl = chrome.runtime.getURL('blocked.html');
-      const config = PLATFORM_PATTERNS[platform];
-      const reason = config?.reason || 'This platform is blocked.';
-      const blockUrl = extUrl + '?domain=' + encodeURIComponent(hostname) + '&platform=' + encodeURIComponent(platform) + '&reason=' + encodeURIComponent(reason) + '&url=' + encodeURIComponent(url);
-      chrome.tabs.update(tabId, { url: blockUrl });
-    });
+    const extUrl = chrome.runtime.getURL('blocked.html');
+    const config = PLATFORM_PATTERNS[platform];
+    const reason = config?.reason || 'This platform is blocked.';
+    const blockUrl = `${extUrl}?domain=${encodeURIComponent(hostname)}&platform=${encodeURIComponent(platform)}&reason=${encodeURIComponent(reason)}&url=${encodeURIComponent(url)}`;
+    console.log('Redirecting to:', blockUrl);
+    chrome.tabs.update(tabId, { url: blockUrl });
   }
 }
 
-chrome.webNavigation.onCompleted.addListener((details) => {
+chrome.webNavigation?.onCompleted.addListener(async (details) => {
   if (details.frameId !== 0) return;
   
-  chrome.storage.local.get('autoBlock', (result) => {
-    if (result.autoBlock === false) return;
-    checkAndBlockCurrentTab(details.tabId, details.url);
-  });
+  const { autoBlock = true } = await chrome.storage.local.get('autoBlock');
+  if (!autoBlock) return;
+  
+  await checkAndBlockCurrentTab(details.tabId, details.url);
 });
 
-console.log('Background loaded');
-loadSavedBlocklist();
-
-function loadSavedBlocklist() {
-  chrome.storage.local.get(['blockedDomains', 'stats'], (result) => {
+async function loadSavedBlocklist() {
+  try {
+    const result = await chrome.storage.local.get('blockedDomains');
     blockedDomains = result.blockedDomains || [];
-    stats = result.stats || { totalBlocked: 0, bypassed: 0, last30Days: [] };
-  });
+  } catch (e) {
+    console.error('Failed to load blocklist:', e);
+  }
 }
 
 loadSavedBlocklist();
-
-chrome.commands.onCommand.addListener((command) => {
-  if (command === 'toggle-blocking') {
-    chrome.storage.local.get('autoBlock', (result) => {
-      chrome.storage.local.set({ autoBlock: !result.autoBlock });
-    });
-  }
-  
-  if (command === 'bypass-current') {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) {
-        try {
-          const hostname = new URL(tabs[0].url).hostname;
-          temporarilyBypassed = hostname;
-          chrome.tabs.reload(tabs[0].id);
-        } catch (e) {}
-      }
-    });
-  }
-});
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getBlockedDomains') {
@@ -186,27 +156,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.action === 'temporarilyBypass') {
     temporarilyBypassed = request.domain;
-    stats.bypassed++;
-    chrome.storage.local.set({ stats });
     sendResponse({ success: true });
-    return true;
-  }
-
-  if (request.action === 'getStats') {
-    chrome.storage.local.get('stats', (result) => {
-      sendResponse(result.stats || stats);
-    });
-    return true;
-  }
-
-  if (request.action === 'exportDomains') {
-    chrome.storage.local.get('blockedDomains', (result) => {
-      const data = result.blockedDomains || [];
-      sendResponse({ 
-        domains: data.map(d => d.domain).join('\n'),
-        json: JSON.stringify(data, null, 2)
-      });
-    });
     return true;
   }
 });

@@ -19,6 +19,22 @@
     "default_popup": "popup.html",
     "default_title": "Blocktheid"
   },
+  "commands": {
+    "toggle-blocking": {
+      "suggested_key": {
+        "default": "Alt+B",
+        "mac": "Alt+B"
+      },
+      "description": "Toggle auto-blocking"
+    },
+    "bypass-current": {
+      "suggested_key": {
+        "default": "Alt+X",
+        "mac": "Alt+X"
+      },
+      "description": "Bypass current site"
+    }
+  },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
